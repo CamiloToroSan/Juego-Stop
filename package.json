@@ -1,0 +1,8 @@
+{
+  "name": "juego-stop",
+  "version": "1.0.0",
+  "main": "moderador.js",
+  "dependencies": {
+    "amqplib": "^0.10.9"
+  }
+}
