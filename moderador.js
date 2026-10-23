@@ -1,7 +1,7 @@
 const amqp = require('amqplib');
 
 // ========= CONFIGURACION =========
-const RABBITMQ_URL = 'amqp://172.162.1.17';
+const RABBITMQ_URL = 'amqp://172.162.1.1';
 
 // ========= EXCHANGES =========
 const EX_DIRECTO = 'stop_directo';
@@ -67,7 +67,7 @@ const ESTUDIANTES = [
     'zambrano'
 ];
 
-const DURACION_MAX_MS = 120000; // 2 minutos maximo
+const DURACION_MAX_MS = 180000; // 3 minutos maximo
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 let channel;
@@ -108,7 +108,7 @@ async function jugarRonda() {
     respuestasRonda.clear();
     stopTimes.clear();
 
-    // Inicializar puntajes en 0 (por claridad)
+    // Inicializar todos con 0
     ESTUDIANTES.forEach(id => respuestasRonda.set(id, {}));
 
     // Escuchar respuestas y stops
@@ -133,7 +133,7 @@ async function jugarRonda() {
         }
     }, { noAck: true });
 
-    // Asignar letras aleatorias y enviar por DIRECT
+    // Asignar letras aleatorias
     const letrasDisponibles = [...LETRAS].sort(() => Math.random() - 0.5);
 
     console.log('\n--- ASIGNANDO LETRAS ---');
@@ -148,7 +148,6 @@ async function jugarRonda() {
 
     rondaInicio = Date.now();
 
-    // Anunciar inicio
     channel.publish(EX_FANOUT, '', Buffer.from(JSON.stringify({
         texto: 'RONDA INICIADA. Responde todas las categorias!'
     })));
@@ -184,7 +183,6 @@ async function jugarRonda() {
 function calcularPuntajes() {
     console.log('\n--- PUNTAJES POR PALABRAS ---');
 
-    // Agrupar por categoria
     const porCategoria = {};
     CATEGORIAS.forEach(cat => { porCategoria[cat] = []; });
 
@@ -199,7 +197,6 @@ function calcularPuntajes() {
     const puntajes = {};
     ESTUDIANTES.forEach(id => { puntajes[id] = 0; });
 
-    // Puntos por palabras unicas (10) o repetidas (5)
     for (const cat of CATEGORIAS) {
         const palabras = porCategoria[cat];
         const contador = {};
@@ -214,7 +211,6 @@ function calcularPuntajes() {
         });
     }
 
-    // Bonus por velocidad
     const ordenStop = [...stopTimes.entries()].sort((a, b) => a[1] - b[1]);
     const bonus = [50, 30, 15];
 
